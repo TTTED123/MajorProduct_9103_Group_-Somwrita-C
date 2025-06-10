@@ -98,6 +98,7 @@ function mousePressed() {
     currentStripe = 0;
     loop();
     setup();
+    loop();
   }
 }
 
@@ -108,6 +109,7 @@ function windowResized() {
   stripes = [];
   currentStripe = 0;
   setup(); // regenerate stripes on resize
+  loop();
 }
 
 // LineStripe class for generating and animating a set of lines
