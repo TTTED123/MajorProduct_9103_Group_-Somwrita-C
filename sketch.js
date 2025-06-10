@@ -1,136 +1,165 @@
-let stripes = [];
-let currentStripe = 0;
-let rangeX;
-let rangeY;
-let rangeLength;
+let stripes = [];           // Array to store all line stripe objects
+let currentStripe = 0;      // Index of the current stripe being animated
 
-let mode = 0; // 0: 多角度线条, 1: 单角度线条
+let mode = 1;               // Drawing mode: 0 = cross pattern, 1 = parallel lines
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
-  
   background(240, 240, 225);
-  rangeX = windowWidth * 0.3;
-  rangeY = windowHeight * 0.3;
-  rangeLength = windowWidth * 0.5;
-  
+
+  // Define ranges for stripe placement
+  let rangeX = windowWidth * 0.3;
+  let rangeY = windowHeight * 0.3;
+  let rangeLength = windowWidth * 0.5;
+
+  // Define angle options based on drawing mode
   let baseAngles;
-  if(mode == 0){
-    baseAngles = [0, 90, -90]; //角度设定
-  }else if(mode == 1){
-    baseAngles = [0];
+  if (mode == 0) {
+    baseAngles = [0, 90, -90]; // cross pattern
+  } else if (mode == 1) {
+    baseAngles = [0];          // parallel horizontal lines
   }
 
+  // Generate 100 line stripe objects
   for (let i = 0; i < 100; i++) {
     stripes.push(new LineStripe(
-    random(-rangeX, rangeX),        // x
-    random(-rangeY, rangeY),        // y
-      random(20, rangeLength),         // 长度
-      random(0.1, 8),         // 间距
-      floor(random(6, 50)),    // 线数量
-      random(baseAngles),       // 角度
-      random(0.1, 1)          // 线粗
+      random(-rangeX, rangeX),          // x position
+      random(-rangeY, rangeY),          // y position
+      random(20, rangeLength),          // length of each line
+      random(0.1, 8),                   // spacing between lines
+      floor(random(6, 50)),             // number of lines in each stripe
+      random(baseAngles),               // angle of rotation
+      random(0.1, 1)                    // base stroke weight
     ));
   }
 }
 
 function draw() {
-  //background(240, 240, 225);
   translate(width / 2, height / 2);  
-  
-  //透过循环生成线组
+
+  // Animate stripes one at a time
   if (currentStripe < stripes.length) {
     stripes[currentStripe].displayStep();
     if (stripes[currentStripe].done) {
       currentStripe++;
     }
   } else {
-    noLoop(); // 停止循环
+    noLoop(); // Stop drawing once all stripes are done
+  }
+
+  drawModeButton(); // Draw UI button
+}
+
+// Draws a button at the bottom left corner to toggle drawing mode
+function drawModeButton() {
+  push();
+  resetMatrix();//
+  // Button position and size adapt to the canvas
+  let margin = 0.025 * min(width, height); 
+  let btnW = 0.25 * width;   
+  let btnH = 0.06 * height;  
+  let x = margin;
+  let y = height - btnH - margin;
+
+  fill(255, 230, 180, 220);
+  stroke(120);
+  strokeWeight(2);
+  rect(x, y, btnW, btnH, 12);
+
+  fill(60);
+  noStroke();
+  textSize(btnH * 0.45); // The font size changes according to the height of the button
+  textAlign(CENTER, CENTER);
+  text(
+    mode === 1 ? "Switch to cross" : "Switch to parallel",
+    x + btnW / 2,
+    y + btnH / 2
+  );
+  pop();
+}
+
+// Handle mouse click for toggling modes
+function mousePressed() {
+  let margin = 0.025 * min(width, height);
+  let btnW = 0.25 * width;
+  let btnH = 0.06 * height;
+  let x = margin;
+  let y = height - btnH - margin;
+
+  if (
+    mouseX >= x && mouseX <= x + btnW &&
+    mouseY >= y && mouseY <= y + btnH
+  ) {
+    mode = mode === 1 ? 0 : 1;
+
+    // Reset everything and rerun setup
+    stripes = [];
+    currentStripe = 0;
+    loop();
+    setup();
   }
 }
 
-
-function windowResized(){
-  setCanvas();
+// Handle window resize
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight); 
+  background(240, 240, 225); 
+  stripes = [];
+  currentStripe = 0;
+  setup(); // regenerate stripes on resize
 }
 
-function setCanvas(){
-  resizeCanvas(windowWidth, windowHeight);
-  background(240, 240, 225);
-  
-  rangeX = windowWidth * 0.8;
-  rangeY = windowHeight * 0.5;
-  rangeLength = windowWidth * 1.5;
-  
-  let baseAngles;
-  if(mode == 0){
-    baseAngles = [0, 90, -90]; //角度设定
-  }else if(mode == 1){
-    baseAngles = [0];
-  }
-
-  for (let i = 0; i < 100; i++) {
-    stripes.push(new LineStripe(
-      random(-rangeX, rangeX),        // x
-      random(-rangeY, rangeY),        // y
-      random(100, rangeLength),         // 长度
-      random(0.1, 5),         // 间距
-      floor(random(6, 50)),    // 线数量
-      random(baseAngles),       // 角度
-      random(0.3, 3)          // 线粗
-    ));
-  }
-}
-
-//线组class
+// LineStripe class for generating and animating a set of lines
 class LineStripe {
-  constructor(x, y, len, spacing, count, angle, baseWeight) {
-    this.x = x;
-    this.y = y;
-    this.len = len;
-    this.spacing = spacing;
-    this.count = count;
-    this.angle = angle;
-    this.baseWeight = baseWeight;
-    this.lines = [];
-    this.index = 0;
-    this.done = false;
-    this.currentLen = 0;
-    this.gray = random(10,200);
+  constructor(x, y, len, spacing, count, angle, baseWeight) {   
+    this.x = x;                        //Position of line
+    this.y = y;                        //Position of line
+    this.len = len;                    //Length of line
+    this.spacing = spacing;            //Spacing of line
+    this.count = count;                // Number of lines in the stripe
+    this.angle = angle;                //Angle of line
+    this.baseWeight = baseWeight;      //Width of line stroke
+    this.lines = [];                   //Array to store the lines
+    this.done = false;                 //Flag to indicate if the stripe is fully drawn
+    this.currentLen = 0;               //Current line length  
+    this.gray = random(10, 200);       //grayscale base color
 
+    // Initialize each line’s parameters
     for (let i = 0; i < this.count; i++) {
-      let offsetY = i * this.spacing;
-      let opacity = random(2, 100);
-      let weight = this.baseWeight + random(-0.1, 0.5);
-      let m = round(random(3));
-      this.lines.push({ offsetY, opacity, weight, m});
+      let offsetY = i * this.spacing;                     // avoid overlapping lines
+      let opacity = random(2, 100);                       // random opacity
+      let weight = this.baseWeight + random(-0.1, 0.5);   // random weight variation
+      let m = round(random(3));                           // direction modifier (0 or 1)
+      this.lines.push({ offsetY, opacity, weight, m });   
     }
   }
-  
-  //绘制线组function
+
+  // Draw the line stripe step by step with animation
   displayStep() {
-        
     push();
     translate(this.x, this.y);
     rotate(-this.angle);
-    
-    for(let i = 0; i < this.lines.length; i++){
+
+    // Draw each line segment with dynamic length
+    for (let i = 0; i < this.lines.length; i++) {
       let l = this.lines[i];
-      stroke(this.gray, l.opacity); // 色彩透明度改变
-      strokeWeight(l.weight); //线段粗度改变
+      stroke(this.gray, l.opacity);
+      strokeWeight(l.weight);
       
-      if(l.m == 0){
-        line(0+l.offsetY, l.offsetY, this.currentLen+l.offsetY, l.offsetY); //生成线段    
-      }else{
-         line(this.len+l.offsetY, l.offsetY, this.len-this.currentLen+l.offsetY, l.offsetY); //生成线段    
+      //Decide the growing direction of line based on mode
+      if (l.m == 0) {
+        line(0 + l.offsetY, l.offsetY, this.currentLen + l.offsetY, l.offsetY);
+      } else {
+        line(this.len + l.offsetY, l.offsetY, this.len - this.currentLen + l.offsetY, l.offsetY);
       }
     }
-    
-    if(this.currentLen < this.len){
+
+    // Animate growth of lines
+    if (this.currentLen < this.len) {
       this.currentLen += 10;
-    }else{
-       this.done = true;
+    } else {
+      this.done = true; //Mark done and continue to draw the next lines
     }
     pop();
   }
