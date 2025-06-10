@@ -9,8 +9,8 @@ function setup() {
   background(240, 240, 225);
 
   // Define ranges for stripe placement
-  let rangeX = windowWidth * 0.3;
-  let rangeY = windowHeight * 0.3;
+  let rangeX = windowWidth / 2;
+  let rangeY = windowHeight / 2;
   let rangeLength = windowWidth * 0.5;
 
   // Define angle options based on drawing mode
@@ -27,7 +27,7 @@ function setup() {
       random(-rangeX, rangeX),          // x position
       random(-rangeY, rangeY),          // y position
       random(20, rangeLength),          // length of each line
-      random(0.1, 8),                   // spacing between lines
+      random(0.1, 6),                   // spacing between lines
       floor(random(6, 50)),             // number of lines in each stripe
       random(baseAngles),               // angle of rotation
       random(0.1, 1)                    // base stroke weight
