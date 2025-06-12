@@ -96,7 +96,6 @@ function mousePressed() {
     // Reset everything and rerun setup
     stripes = [];
     currentStripe = 0;
-    loop();
     setup();
     loop();
   }
